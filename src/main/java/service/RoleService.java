@@ -16,10 +16,14 @@ public class RoleService {
     public Page<Role> getRoles(int page, boolean isShowRestore, String search){
         return roleDAO.findAll(page,isShowRestore,search);
     }
+    public List<Role> getAll(){
+        return roleDAO.getAll();
+    }
     public void create(Role role){
         roleDAO.create(role);
     }
-    public void upadte(Role role){
+    public void update(Role role, int id){
+        role.setId(id);
         roleDAO.update(role);
     }
 

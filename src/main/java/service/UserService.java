@@ -7,8 +7,8 @@ import service.dto.Page;
 public class UserService {
     private final UserDAO userDAO;
 
-    public UserService(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    public UserService() {
+        userDAO = new UserDAO();
     }
     public void create(User user){
         userDAO.create(user);
@@ -19,7 +19,8 @@ public class UserService {
     public User findById(int id){
         return userDAO.findById(id);
     }
-    public void update(User user){
+    public void update(User user, int id){
+        user.setId(id);
         userDAO.update(user);
     }
     public void restore(String[] ids){
@@ -27,9 +28,7 @@ public class UserService {
             userDAO.restore(Integer.parseInt(id));
         }
     }
-    public void delete(String[] ids){
-        for(var id : ids){
-            userDAO.delete(Integer.parseInt(id));
-        }
+    public void delete(int id){
+        userDAO.delete(id);
     }
 }

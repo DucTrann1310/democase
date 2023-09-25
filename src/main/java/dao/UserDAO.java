@@ -28,17 +28,15 @@ public class UserDAO extends DatabaseConnection{
         var SELECT_ALL = "SELECT u.*, r.name role_name " +
                 "FROM users u " +
                 "JOIN roles r ON u.role_id = r.id " +
-                "JOIN eGender g ON u.gender = g.name" +
                 "WHERE u.deleted = ? AND (LOWER(u.firstName) LIKE ? OR LOWER(u.lastName) LIKE ? " +
-                "OR LOWER(u.username) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(u.role) LIKE ? OR LOWER(u.gender) LIKE ? " +
+                "OR LOWER(u.username) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(r.name) LIKE ? OR LOWER(u.gender) LIKE ?) " +
                 "LIMIT ? OFFSET ?";
 
         var SELECT_COUNT = "SELECT count(*) cnt " +
                 "FROM users u " +
                 "JOIN roles r ON u.role_id = r.id " +
-                "JOIN eGender g ON u.gender = g.name" +
                 "WHERE u.deleted = ? AND (LOWER(u.firstName) LIKE ? OR LOWER(u.lastName) LIKE ? " +
-                "OR LOWER(u.username) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(u.role) LIKE ? OR LOWER(u.gender) LIKE ? ";
+                "OR LOWER(u.username) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(r.name) LIKE ? OR LOWER(u.gender) LIKE ?) ";
 
         try {
             Connection connection = getConnection();
@@ -85,6 +83,8 @@ public class UserDAO extends DatabaseConnection{
     public void create(User user){
         String CREATE = "INSERT INTO `demojdbc`.`users` (`firstName`, `lastName`, `username`, `email`,`dob`,`role_id`,`gender`) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
+//        INSERT INTO `demojdbc`.`users` (`firstName`, `lastName`, `username`, `email`, `dob`, `role_id`, `gender`)
+//        VALUES ('duc', 'tran', 'ductran123', 'ductran123@gmail.com', '1997/13/10', 'user', 'MALE');
         try {
             Connection connection = getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(CREATE);
@@ -102,8 +102,9 @@ public class UserDAO extends DatabaseConnection{
         }
     }
     public void update(User user){
-        String UPDATE = "INSERT INTO `demojdbc`.`users` (`firstName`, `lastName`, `username`, `email`,`dob`,`role_id`,`gender`) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String UPDATE = "UPDATE `demojdbc`.`users` " +
+                "SET `firstName` = ?, `lastName` = ?, `username` = ?, `email` = ?, `dob` = ?, `role_id` = ?, `gender` = ? " +
+                "WHERE `id` = ?";
         try {
             Connection connection = getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE);
@@ -114,7 +115,9 @@ public class UserDAO extends DatabaseConnection{
             preparedStatement.setDate(5,user.getDob());
             preparedStatement.setInt(6,user.getRole().getId());
             preparedStatement.setString(7,user.getGender().toString());
+            preparedStatement.setInt(8,user.getId());
             preparedStatement.executeUpdate();
+            System.out.println(preparedStatement);
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -151,13 +154,14 @@ public class UserDAO extends DatabaseConnection{
 
     public User findById(int id){
         String SELECT_BY_ID = "SELECT u.*, r.name role_name " +
-                "FROM users u" +
+                "FROM users u " +
                 "JOIN roles r ON u.role_id = r.id " +
-                "WHERE u.id = ? AND deleted = '0'";
+                "WHERE u.id = ? AND u.deleted = '0'";
         try {
             Connection connection = getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_BY_ID);
             preparedStatement.setInt(1,id);
+            System.out.println(preparedStatement);
             var rs = preparedStatement.executeQuery();
             if(rs.next()){
                 return getUserByResultSet(rs);
@@ -176,7 +180,7 @@ public class UserDAO extends DatabaseConnection{
         user.setUsername(rs.getString("userName"));
         user.setEmail(rs.getString("email"));
         user.setDob(rs.getDate("dob"));
-        user.setRole(new Role(rs.getString("role_name")));
+        user.setRole(new Role(rs.getInt("role_id"),rs.getString("role_name")));
         user.setGender(EGender.valueOf(rs.getString("gender")));
         return user;
     }

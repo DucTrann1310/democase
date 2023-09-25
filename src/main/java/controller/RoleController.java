@@ -29,7 +29,13 @@ public class RoleController extends HttpServlet {
             case "search" -> showList(req,resp);
             case "searchDeleted" ->showRestore(req,resp);
             case "create" -> showCreate(req,resp);
+            case "edit" -> showEdit(req,resp);
         }
+    }
+
+    private void showEdit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setAttribute("role", roleService.findById(Integer.parseInt(req.getParameter("id"))));
+        req.getRequestDispatcher("role/edit.jsp").forward(req,resp);
     }
 
     private void showCreate(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -81,7 +87,13 @@ public class RoleController extends HttpServlet {
         switch (action){
             case "restore" -> restore(req,resp);
             case "create" -> create(req,resp);
+            case "edit" -> edit(req,resp);
         }
+    }
+
+    private void edit(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        roleService.update(getRoleByRequest(req), Integer.parseInt(req.getParameter("id")));
+        resp.sendRedirect("/role?message=Updated");
     }
 
     private void create(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -90,19 +102,20 @@ public class RoleController extends HttpServlet {
     }
 
     private Role getRoleByRequest(HttpServletRequest req) {
-        String name = req.getParameter("name");
-        return new Role(name);
+        String idRole = req.getParameter("name");
+
+        return new Role(Integer.parseInt(idRole));
     }
 
     private void restore(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String[] restoredBooksIds = req.getParameterValues("restoredRole");
-        if(restoredBooksIds != null && restoredBooksIds.length > 0){
-            for(int i = 0;i < restoredBooksIds.length;i++){
-                roleService.restore(restoredBooksIds);
+        String[] restoredRoleIds = req.getParameterValues("restoredRole");
+        if(restoredRoleIds != null && restoredRoleIds.length > 0){
+            for(int i = 0;i < restoredRoleIds.length;i++){
+                roleService.restore(restoredRoleIds);
             }
             resp.sendRedirect("/role?message=Restored");
         }else {
-            resp.sendRedirect("/role?message=NoProductsSelected");
+            resp.sendRedirect("/role?message=NoRolesSelected");
         }
     }
 

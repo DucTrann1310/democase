@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class RoleDAO extends DatabaseConnection{
     public Page<Role> findAll(int page, boolean isShowRestore, String search){
@@ -62,6 +63,24 @@ public class RoleDAO extends DatabaseConnection{
         }
         return result;
     }
+    public List<Role> getAll(){
+        List<Role> result = new ArrayList<>();
+        var SELECT_ALL = "SELECT * " +
+                "FROM roles r " +
+                "WHERE r.deleted = '0'";
+        try {
+            Connection connection = getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL);
+            System.out.println(preparedStatement);
+            var rs = preparedStatement.executeQuery();
+            while (rs.next()){
+                result.add(getRoleByResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
 
 
     public void create(Role role){
@@ -79,12 +98,14 @@ public class RoleDAO extends DatabaseConnection{
     }
 
     public void update(Role role){
-        String UPDATE = "INSERT INTO `demojdbc`.`roles` (`name`) " +
-                "VALUES (?)";
+        String UPDATE = "UPDATE `demojdbc`.`roles` " +
+                "SET `name` = ? " +
+                "WHERE `id` = ?";
         try {
             Connection connection = getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE);
             preparedStatement.setString(1,role.getName());
+            preparedStatement.setInt(2,role.getId());
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
@@ -123,8 +144,8 @@ public class RoleDAO extends DatabaseConnection{
 
     public Role findById(int id){
         String SELECT_BY_ID = "SELECT * " +
-                "FROM roles r" +
-                "WHERE r.id = ? AND deleted = '0'";
+                "FROM roles r " +
+                "WHERE r.id = ? AND r.deleted = '0'";
         try {
             Connection connection = getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_BY_ID);
